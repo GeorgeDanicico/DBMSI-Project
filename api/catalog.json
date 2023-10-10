@@ -1,0 +1,156 @@
+{
+  "databases": [
+    {
+      "tables": [
+        {
+          "fileName": "tabletest3.kv",
+          "foreignKeys": [
+            {
+              "referencedTable": "othertable",
+              "foreignKeyAttributes": [
+                "column2"
+              ],
+              "referencedAttributes": [
+                "othertable_id"
+              ]
+            }
+          ],
+          "indexes": [
+            {
+              "indexName": "primaryKeyIndex.ind",
+              "isUnique": 1,
+              "indexAttributes": [
+                "column_id"
+              ]
+            }
+          ],
+          "uniqueKeys": [
+            "column1"
+          ],
+          "attributes": [
+            {
+              "attributeType": "string",
+              "isNull": 0,
+              "attributeName": "column_id"
+            },
+            {
+              "attributeType": "string",
+              "isNull": 0,
+              "attributeName": "column1"
+            },
+            {
+              "attributeType": "string",
+              "isNull": 0,
+              "attributeName": "column2"
+            }
+          ],
+          "tableName": "tabletest3",
+          "primaryKey": {
+            "pkAttributes": [
+              "column_id"
+            ]
+          }
+        },
+        {
+          "fileName": "tabletest2.kv",
+          "foreignKeys": [
+            {
+              "referencedTable": "othertable",
+              "foreignKeyAttributes": [
+                "column2"
+              ],
+              "referencedAttributes": [
+                "othertable_id"
+              ]
+            }
+          ],
+          "indexes": [
+            {
+              "indexName": "primaryKeyIndex.ind",
+              "isUnique": 1,
+              "indexAttributes": [
+                "column_id"
+              ]
+            }
+          ],
+          "uniqueKeys": [
+            "column1"
+          ],
+          "attributes": [
+            {
+              "attributeType": "string",
+              "isNull": 0,
+              "attributeName": "column_id"
+            },
+            {
+              "attributeType": "string",
+              "isNull": 0,
+              "attributeName": "column1"
+            },
+            {
+              "attributeType": "string",
+              "isNull": 0,
+              "attributeName": "column2"
+            }
+          ],
+          "tableName": "tabletest2",
+          "primaryKey": {
+            "pkAttributes": [
+              "column_id"
+            ]
+          }
+        },
+        {
+          "fileName": "tabletest1.kv",
+          "foreignKeys": [
+            {
+              "referencedTable": "othertable",
+              "foreignKeyAttributes": [
+                "column2"
+              ],
+              "referencedAttributes": [
+                "othertable_id"
+              ]
+            }
+          ],
+          "indexes": [
+            {
+              "indexName": "primaryKeyIndex.ind",
+              "isUnique": 1,
+              "indexAttributes": [
+                "column_id"
+              ]
+            }
+          ],
+          "uniqueKeys": [
+            "column1"
+          ],
+          "attributes": [
+            {
+              "attributeType": "string",
+              "isNull": 0,
+              "attributeName": "column_id"
+            },
+            {
+              "attributeType": "string",
+              "isNull": 0,
+              "attributeName": "column1"
+            },
+            {
+              "attributeType": "string",
+              "isNull": 0,
+              "attributeName": "column2"
+            }
+          ],
+          "tableName": "tabletest1",
+          "primaryKey": {
+            "pkAttributes": [
+              "column_id"
+            ]
+          }
+        }
+      ],
+      "databaseName": "UBB"
+    }
+  ]
+}
