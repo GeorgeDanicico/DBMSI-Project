@@ -4,6 +4,7 @@ import com.dbms.project.model.Database;
 import com.dbms.project.model.Index;
 import com.dbms.project.model.Table;
 import org.json.simple.JSONArray;
+import org.json.simple.JSONAware;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
@@ -158,5 +159,21 @@ public class TableRepository {
             e.printStackTrace();
         }
         return true;
+    }
+
+    public JSONArray getAllTables(String databaseName) throws Exception {
+        logger.info("Get all tables called.");
+        JSONParser parser = new JSONParser();
+        JSONObject databases = (JSONObject) parser.parse(new FileReader(CATALOG_PATH));
+
+        JSONArray databasesArray = (JSONArray) databases.get("databases");
+
+        JSONObject db = (JSONObject) databasesArray.stream().filter((database) -> ((JSONObject) database).get("databaseName").equals(databaseName))
+                .findFirst().orElse(null);
+        if (db == null) {
+            logger.error("Database: {} does not exist", databaseName);
+            return null;
+        }
+        return (JSONArray) db.get("tables");
     }
 }

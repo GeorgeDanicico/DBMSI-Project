@@ -7,6 +7,8 @@ import com.dbms.project.model.Table;
 import com.dbms.project.repository.DatabaseRepository;
 import com.dbms.project.repository.TableRepository;
 import jakarta.validation.Valid;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,8 +29,10 @@ public class TableController {
 
     @GetMapping("/databases/{databaseName}/tables")
     public Map<?, ?> getAllTablesForDatabase(@Valid @PathVariable String databaseName) throws Exception {
+        Map<String, JSONArray> response = new HashMap<>();
+        response.put("tables", tableRepository.getAllTables(databaseName));
 
-        return null;
+        return response;
     }
 
     @PostMapping("/databases/{databaseName}/tables")
