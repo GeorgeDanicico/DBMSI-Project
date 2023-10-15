@@ -1,0 +1,18 @@
+<ngb-toast
+  *ngIf="toast$ | async as toast"
+  [class]="toast.className"
+  [autohide]="true"
+  [delay]="toast.delay || 5000"
+  (hidden)="toastService.remove()">
+  <button
+    type="button"
+    class="btn-close btn-close-position btn-close-white"
+    aria-label="Close"
+    (click)="onClose()"></button>
+  <div class="notification">
+    <i
+      class="fa-solid fa-2x"
+      [ngClass]="computeNotificationIcon(toast.type)"></i>
+    {{ toast.message }}
+  </div>
+</ngb-toast>

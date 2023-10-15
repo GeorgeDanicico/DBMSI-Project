@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  selector: 'ado-root',
+  template: `
+    <router-outlet></router-outlet>
+    <ado-toasts-container aria-live="polite" aria-atomic="true"></ado-toasts-container>
+  `,
 })
-export class AppComponent {
-  title = 'app';
-}
+export class AppComponent {}

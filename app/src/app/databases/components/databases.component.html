@@ -1,0 +1,25 @@
+<div class="row m-auto">
+  <div class="col-4">
+    <form [formGroup]="form"
+          class="d-flex flex-row mb-3">
+      <div class="form-floating me-3">
+        <input class="form-control"
+               id="floatingName"
+               placeholder="Database name"
+               formControlName="name">
+        <label for="floatingName">Database name</label>
+      </div>
+
+      <button class="btn btn-secondary"
+      [disabled]="form.invalid"
+              (click)="onNewDatabase()">New database</button>
+    </form>
+
+    <ado-databases-list [databases]="databases" (databaseSelected)="onDatabaseSelected($event)" (databaseDeleted)="onDatabaseDeleted($event)"></ado-databases-list>
+  </div>
+
+  <div class="col-8 m-auto">
+    <ado-tables *ngIf="databaseSelected" [database]="databaseSelected"></ado-tables>
+  </div>
+
+</div>

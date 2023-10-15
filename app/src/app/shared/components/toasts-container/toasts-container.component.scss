@@ -1,0 +1,29 @@
+:host {
+  position: absolute;
+  top: 0;
+  align-content: center;
+  left: 50%;
+  transform: translate(-50%, 0px);
+  margin: 0.5em;
+  z-index: 1200;
+}
+
+.notification {
+  align-items: center;
+  display: flex;
+}
+
+i {
+  margin-right: 12px;
+}
+
+.btn-close-position {
+  float: right;
+  top: 0;
+  right: 0;
+}
+
+:host {
+  position: fixed;
+  top: 0;
+}

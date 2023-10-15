@@ -1,0 +1,157 @@
+<div class="modal-content bg-body text-body">
+  <div class="modal-header">
+    <h4 class="modal-title">Create table</h4>
+    <button type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+            (click)="onClose()"></button>
+  </div>
+
+  <div class="modal-body">
+    <form [formGroup]="attributeForm">
+      <div class="d-flex flex-row">
+
+        <div class="col-6 form-floating mb-3 me-3">
+          <input class="form-control"
+                 id="floatingTableName"
+                 placeholder="File name"
+                 formControlName="tableName">
+          <label for="floatingTableName">Table name</label>
+        </div>
+
+        <div class="col-6 form-floating mb-3 me-3">
+          <input class="form-control"
+                 id="floatingFileName"
+                 placeholder="File name"
+                 formControlName="fileName">
+          <label for="floatingFileName">File name</label>
+        </div>
+      </div>
+
+
+      <div formArrayName="items">
+        <div *ngFor="let item of attributeItems.controls; let i=index"
+             [formGroupName]="i"
+             class="d-flex flex-row mb-3">
+
+          <div class="col-2 form-check me-3 m-auto">
+            <input class="form-check-input"
+                   type="checkbox"
+                   formControlName="isPrimaryKey"
+                   id="primaryKey">
+            <label class="form-check-label"
+                   for="peimaryKey">
+              Primary key
+            </label>
+          </div>
+
+          <div class="col-3 form-floating me-3">
+            <input class="form-control"
+                   id="attributeName"
+                   formControlName="attributeName"
+                   placeholder="Attribute name">
+            <label for="AttributeName">Attribute name</label>
+          </div>
+
+          <input class="form-control me-3"
+                 list="datalistOptions"
+                 id="exampleDataList"
+                 formControlName="attributeType"
+                 placeholder="Attribute type">
+          <datalist id="datalistOptions">
+            <option *ngFor="let attributeType of attributeTypes"
+                    [value]="attributeType">
+          </datalist>
+
+          <div class="col-2 form-check m-auto">
+            <input class="form-check-input"
+                   type="checkbox"
+                   formControlName="allowNulls"
+                   id="flexCheckChecked">
+            <label class="form-check-label"
+                   for="flexCheckChecked">
+              Allow nulls
+            </label>
+          </div>
+
+          <div class="col-2 form-check m-auto">
+            <input class="form-check-input"
+                   type="checkbox"
+                   formControlName="isUnique"
+                   id="flexCheckCheckedIsUnique">
+            <label class="form-check-label"
+                   for="flexCheckCheckedIsUnique">
+              Is unique
+            </label>
+          </div>
+
+          <div class="col m-auto">
+            <i (click)="deleteAttribute(i)"
+               class="fa-solid fa-trash-can cursor-pointer"></i>
+          </div>
+
+        </div>
+
+        <div class="row">
+          <div class="d-flex justify-content-end">
+            <button [disabled]="attributeForm.invalid"
+                    (click)="addAttribute()"
+                    class="btn btn-secondary mb-3">Add attribute</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div formArrayName="foreignKeys">
+        <div *ngFor="let foreignKey of foreignKeys.controls; let i=index"
+             [formGroupName]="i"
+             class="d-flex flex-row">
+
+          <div class="col form-floating mb-3 me-3">
+            <input class="form-control"
+                   id="floatingReferencedTable"
+                   placeholder="Referenced table"
+                   formControlName="referencedTable">
+            <label for="floatingReferencedTable">Referenced table</label>
+          </div>
+
+          <div class="col form-floating mb-3 me-3">
+            <input class="form-control"
+                   id="floatingForeignKeyAttributes"
+                   placeholder="Foreign Key Attributes"
+                   formControlName="foreignKeyAttributes">
+            <label for="floatingForeignKeyAttributes">Foreign key attributes</label>
+          </div>
+
+          <div class="col form-floating mb-3 me-3">
+            <input class="form-control"
+                   id="floatingReferencedAttributes"
+                   placeholder="Referenced attributes"
+                   formControlName="referencedAttributes">
+            <label for="floatingReferencedAttributes">Referenced attributes</label>
+          </div>
+
+          <div class="col-1 m-auto">
+            <i (click)="deleteForeignKey(i)"
+               class="fa-solid fa-trash-can cursor-pointer"></i>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="d-flex flex-row">
+        <button (click)="addForeignKeys()"
+                [disabled]="attributeForm.invalid"
+                class="btn btn-secondary">Add foreign keys</button>
+      </div>
+
+    </form>
+  </div>
+  <div class="modal-footer">
+
+    <button (click)="onSaveTable()"
+            [disabled]="attributeForm.invalid"
+            class="btn btn-success text-white m-auto">Save table</button>
+  </div>
+</div>
