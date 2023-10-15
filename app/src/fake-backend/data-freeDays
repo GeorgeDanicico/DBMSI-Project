@@ -1,0 +1,34 @@
+const { endDate } = require("./data-requests");
+
+/**
+ * @type {FreeDayBE}
+ */
+const FREE_DAYS = [
+  {
+    name: "Anul nou",
+    startDate: new Date(2022, 01, 01).toISOString().split("T")[0],
+    endDate: new Date(2022, 01, 02).toISOString().split("T")[0],
+  },
+  {
+    name: "Adormirea Maicii Domnului",
+    startDate: new Date(2022, 08, 15).toISOString().split("T")[0],
+    endDate: new Date(2022, 08, 15).toISOString().split("T")[0],
+  },
+  {
+    name: "Ziua copilului",
+    startDate: new Date(2022, 06, 01).toISOString().split("T")[0],
+    endDate: new Date(2022, 06, 01).toISOString().split("T")[0],
+  },
+  {
+    name: "Sfanta Roxana",
+    startDate: new Date(2022, 08, 10).toISOString().split("T")[0],
+    endDate: new Date(2022, 08, 13).toISOString().split("T")[0],
+  },
+  {
+    name: "Ziua Roxanei",
+    startDate: new Date(2022, 09, 11).toISOString().split("T")[0],
+    endDate: new Date(2022, 08, 20).toISOString().split("T")[0],
+  },
+];
+
+module.exports = FREE_DAYS;

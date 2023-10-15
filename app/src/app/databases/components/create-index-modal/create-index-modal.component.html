@@ -1,0 +1,50 @@
+<div class="modal-content bg-body text-body">
+  <div class="modal-header">
+    <h4 class="modal-title">Create index</h4>
+    <button type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+            (click)="onClose()"></button>
+  </div>
+
+  <div class="modal-body">
+    <form [formGroup]="indexForm">
+      <div class="d-flex flex-row">
+
+        <div class="col-4 form-floating mb-3 me-3">
+          <input class="form-control"
+                 id="floatingIndexName"
+                 placeholder="Index name"
+                 formControlName="indexName">
+          <label for="floatingIndexName">Index name</label>
+        </div>
+
+        <div class="col-4 form-floating mb-3 me-3">
+          <input class="form-control"
+                 id="floatingIndexAttributes"
+                 placeholder="Index attributes"
+                 formControlName="indexAttributes">
+          <label for="floatingIndexAttributes">Index attributes</label>
+        </div>
+
+        <div class="col-4 form-check m-auto">
+          <input class="form-check-input"
+                 type="checkbox"
+                 formControlName="isUnique"
+                 id="flexIsUnique">
+          <label class="form-check-label"
+                 for="flexIsUnique">
+            Is unique
+          </label>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+
+    <button (click)="onSaveIndex()"
+            [disabled]="indexForm.invalid"
+            class="btn btn-success text-white m-auto">Save index</button>
+  </div>
+</div>

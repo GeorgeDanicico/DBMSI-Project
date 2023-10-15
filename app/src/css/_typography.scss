@@ -1,0 +1,70 @@
+@font-face {
+    font-family: 'Meta Serif Pro';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('~assets/fonts/Meta Serif Pro/MetaSerifPro-Medium.woff2') format('woff2'),
+    url('~assets/fonts/Meta Serif Pro/MetaSerifPro-Medium.woff2') format('woff');
+  }
+  
+  @font-face {
+    font-family: 'Meta Serif Pro';
+    font-style: normal;
+    font-weight: 800;
+    font-display: swap;
+    src: url('~assets/fonts/Meta Serif Pro/MetaSerifPro-Extrabold.woff2') format('woff2'),
+    url('~assets/fonts/Meta Serif Pro/MetaSerifPro-Extrabold.woff') format('woff');
+  }
+  
+  @font-face {
+    font-family: 'PT Sans';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('~assets/fonts/PT Sans/PTSans-Regular.woff2') format('woff2'),
+    url('~assets/fonts/PT Sans/PTSans-Regular.woff') format('woff');
+  }
+  
+  @font-face {
+    font-family: 'PT Sans';
+    font-style: italic;
+    font-weight: 400;
+    font-display: swap;
+    src: url('~assets/fonts/PT Sans/PTSans-Italic.woff2') format('woff2');
+  }
+  
+  @font-face {
+    font-family: 'PT Sans';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('~assets/fonts/PT Sans/PTSans-Bold.woff2') format('woff2'),
+    url('~assets/fonts/PT Sans/PTSans-Bold.woff') format('woff');
+  }
+  
+  @font-face {
+    font-family: 'PT Sans';
+    font-style: italic;
+    font-weight: 700;
+    font-display: swap;
+    src: url('~assets/fonts/PT Sans/PTSans-BoldItalic.woff2') format('woff2'),
+    url('~assets/fonts/PT Sans/PTSans-BoldItalic.woff') format('woff');
+  }
+  
+  @font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('~assets/fonts/Poppins/Poppins-Bold.woff2') format('woff2'),
+    url('~assets/fonts/Poppins/Poppins-Bold.woff') format('woff');
+  }
+  
+  .display-1, .display-2, .display-3, .display-4, .display-5, .display-6, .display-7, .display-8 {
+    font-family: $font-family-serif;
+  }
+  
+  .extra-small {
+    font-size: 13px;
+  }
+  
