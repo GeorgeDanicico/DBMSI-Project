@@ -26,11 +26,7 @@ public class DatabaseController {
 
     @GetMapping("/databases")
     public JSONObject getAllDatabases() throws Exception {
-        JSONObject databases = databaseRepository.getAllDatabases();
-//        Map<String, List<Database>> response = new HashMap<>();
-//        response.put("databases", databases);
-
-        return databases;
+        return databaseRepository.getAllDatabases();
     }
 
     @PostMapping("/databases")
