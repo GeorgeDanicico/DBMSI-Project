@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import org.json.simple.JSONObject;
 import org.junit.Ignore;
 
+import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -19,7 +21,21 @@ public class Attribute {
     private Boolean isPrimaryKey;
     @JsonIgnore
     private Boolean isUniqueKey;
-    private Integer isNull;
+    private Long isNull;
+
+    public static Attribute fromJSON(JSONObject attribute, PrimaryKey pk, List<String> uniqueKeys) {
+        Attribute attr = new Attribute();
+        attr.setAttributeName((String) attribute.get("attributeName"));
+        attr.setAttributeType((String) attribute.get("attributeType"));
+        attr.setIsNull((Long) attribute.get("isNull"));
+        if (pk.getPkAttributes().contains(attr.getAttributeName())) {
+            attr.setIsPrimaryKey(true);
+        } else attr.setIsPrimaryKey(false);
+        if (uniqueKeys.contains(attr.getAttributeName())) {
+            attr.setIsUniqueKey(true);
+        } else attr.setIsUniqueKey(false);
+        return attr;
+    }
 
     public JSONObject toJSON() {
         JSONObject obj = new JSONObject();

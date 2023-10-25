@@ -1,20 +1,17 @@
 package com.dbms.project.controller;
 
 import com.dbms.project.dto.MessageResponse;
-import com.dbms.project.model.Database;
 import com.dbms.project.model.Index;
 import com.dbms.project.model.Table;
-import com.dbms.project.repository.DatabaseRepository;
 import com.dbms.project.repository.TableRepository;
+import com.dbms.project.service.TableService;
 import jakarta.validation.Valid;
 import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @CrossOrigin("*")
@@ -22,9 +19,11 @@ import java.util.Map;
 @RequestMapping("/api")
 public class TableController {
     private final TableRepository tableRepository;
+    private final TableService tableService;
 
-    public TableController(TableRepository tableRepository) {
+    public TableController(TableRepository tableRepository, TableService tableService) {
         this.tableRepository = tableRepository;
+        this.tableService = tableService;
     }
 
     @GetMapping("/databases/{databaseName}/tables")
@@ -67,5 +66,21 @@ public class TableController {
             return new ResponseEntity<>(new MessageResponse("Table deleted successfully"), HttpStatus.OK);
         }
         return new ResponseEntity<>(new MessageResponse("Could not delete table"), HttpStatus.BAD_REQUEST);
+    }
+
+    @PostMapping("/databases/{databaseName}/tables/{tableName}/insert")
+    public ResponseEntity<?> insertRow(@Valid @PathVariable String databaseName,
+                                       @Valid @PathVariable String tableName,
+                                       @Valid @RequestBody Map<String, String> values) {
+        tableService.insertRow(databaseName, tableName, values);
+        return new ResponseEntity<>(new MessageResponse("Row has been inserted successfully"), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/databases/{databaseName}/tables/{tableName}/delete/{rowId}")
+    public ResponseEntity<?> deleteRow(@Valid @PathVariable String databaseName,
+                                       @Valid @PathVariable String tableName,
+                                       @Valid @PathVariable String rowId) {
+        tableService.deleteRow(databaseName, tableName, rowId);
+        return new ResponseEntity<>(new MessageResponse("Row has been deleted successfully"), HttpStatus.OK);
     }
 }
