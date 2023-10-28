@@ -36,7 +36,7 @@ public class TableRepository {
 
     public boolean deleteTable(String databaseName, String tableName) throws Exception{
         logger.info("Delete table: {} from database: {}", tableName, databaseName);
-        TableUtils.deleteTable(tableName, databaseName);
+        TableUtils.deleteTable(databaseName, tableName);
         MongoTemplate mongoTemplate = mongoUtils.mongoTemplate(databaseName);
         mongoTemplate.dropCollection(tableName);
         return true;

@@ -64,17 +64,25 @@ public class TableUtils {
         JSONObject databases = DatabaseUtils.getAllDatabases();
         JSONObject db = DatabaseUtils.getDatabase(databaseName);
         JSONArray databasesArray = (JSONArray) databases.get("databases");
-        JSONArray databaseTables = (JSONArray) db.get("tables");
         JSONObject tbl = TableUtils.getTableFromDatabase(databaseName, tableName);
+        JSONArray databaseTables = (JSONArray) db.get("tables");
 
         if (tbl == null) {
             logger.error("Invalid table name.");
             throw new DBMSException("400", "Invalid table name. There is no table with this name.");
         }
 
+        for (int i = 0; i < databaseTables.size(); i++) {
+            if (((JSONObject) databaseTables.get(i)).get("tableName").equals(tableName)) {
+                databaseTables.remove(databaseTables.get(i));
+            }
+        }
+
+        db.put("tables", databaseTables);
         for (int i = 0; i < databasesArray.size(); i++) {
             if (((JSONObject) databasesArray.get(i)).get("databaseName").equals(databaseName)) {
                 databasesArray.remove(databasesArray.get(i));
+                databasesArray.add(i, db);
             }
         }
         databases.put("databases", databasesArray);
