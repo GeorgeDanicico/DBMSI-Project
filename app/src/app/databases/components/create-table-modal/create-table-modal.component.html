@@ -95,7 +95,7 @@
 
         <div class="row">
           <div class="d-flex justify-content-end">
-            <button [disabled]="attributeForm.invalid"
+            <button 
                     (click)="addAttribute()"
                     class="btn btn-secondary mb-3">Add attribute</button>
           </div>
@@ -108,27 +108,36 @@
              [formGroupName]="i"
              class="d-flex flex-row">
 
-          <div class="col form-floating mb-3 me-3">
-            <input class="form-control"
-                   id="floatingReferencedTable"
-                   placeholder="Referenced table"
-                   formControlName="referencedTable">
+          <div class="form-floating mb-3 me-3 col">
+            <select class="form-select"
+                    id="floatingReferencedTable"
+                    formControlName="referencedTable"
+                    placeholder="Referenced table">
+              <option *ngFor="let option of referencedTablesOptions"
+                      [value]="option">{{ option }}</option>
+            </select>
             <label for="floatingReferencedTable">Referenced table</label>
           </div>
 
-          <div class="col form-floating mb-3 me-3">
-            <input class="form-control"
-                   id="floatingForeignKeyAttributes"
-                   placeholder="Foreign Key Attributes"
-                   formControlName="foreignKeyAttributes">
+          <div class="form-floating mb-3 me-3 col">
+            <select class="form-select"
+                    id="floatingForeignKeyAttributes"
+                    formControlName="foreignKeyAttributes"
+                    placeholder="Foreign Key Attributes">
+              <option *ngFor="let option of foreignKeyAttributesOptions"
+                      [value]="option">{{ option }}</option>
+            </select>
             <label for="floatingForeignKeyAttributes">Foreign key attributes</label>
           </div>
 
-          <div class="col form-floating mb-3 me-3">
-            <input class="form-control"
-                   id="floatingReferencedAttributes"
-                   placeholder="Referenced attributes"
-                   formControlName="referencedAttributes">
+          <div class="form-floating mb-3 me-3 col">
+            <select class="form-select"
+                    id="floatingReferencedAttributes"
+                    formControlName="referencedAttributes"
+                    placeholder="Referenced attributes">
+              <option *ngFor="let option of referencedAttributesOptions.get(i)"
+                      [value]="option">{{ option }}</option>
+            </select>
             <label for="floatingReferencedAttributes">Referenced attributes</label>
           </div>
 
@@ -142,7 +151,6 @@
 
       <div class="d-flex flex-row">
         <button (click)="addForeignKeys()"
-                [disabled]="attributeForm.invalid"
                 class="btn btn-secondary">Add foreign keys</button>
       </div>
 

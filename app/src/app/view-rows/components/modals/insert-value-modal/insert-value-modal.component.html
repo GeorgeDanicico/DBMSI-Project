@@ -1,0 +1,80 @@
+<div class="modal-content bg-body text-body">
+  <div class="modal-header">
+    <h4 class="modal-title">Insert values</h4>
+    <button type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+            (click)="onClose()"></button>
+  </div>
+
+  <div class="modal-body">
+
+    <form [formGroup]="tableForm">
+      <div formArrayName="items">
+        <div *ngFor="let item of attributeItems.controls; let i = index"
+             [formGroupName]="i">
+          <div class="d-flex flex-wrap ">
+            <div class="col-3 pe-3 pb-3"
+                 *ngFor="let attribute of attributes">
+              <ng-container *ngIf="attribute.attributeType.includes('VARCHAR')">
+                <div class="form-floating">
+                  <input type="text"
+                         class="form-control"
+                         [formControlName]="attribute.attributeName"
+                         [id]="'floating' + attribute.attributeName"
+                         placeholder="">
+                  <label [for]="'floating' + attribute.attributeName">{{ attribute.attributeName }}</label>
+                </div>
+              </ng-container>
+              <ng-container *ngIf="attribute.attributeType === 'INT'">
+                <div class="form-floating">
+                  <input type="number"
+                         [formControlName]="attribute.attributeName"
+                         class="form-control"
+                         [id]="'floating' + attribute.attributeName"
+                         placeholder="">
+                  <label [for]="'floating' + attribute.attributeName">{{ attribute.attributeName }}</label>
+                </div>
+              </ng-container>
+              <ng-container *ngIf="attribute.attributeType === 'DATE'">
+                <div class="input-group form-floating form-group">
+                  <input class="form-control"
+                         placeholder="Date"
+                         [formControlName]="attribute.attributeName"
+                         ngbDatepicker
+                         [id]="'floating' + attribute.attributeName"
+                         #d="ngbDatepicker" />
+                  <label [for]="'floating' + attribute.attributeName"
+                         class="form-label">{{ attribute.attributeName }}</label>
+                  <button class="btn datepicker"
+                          (click)="d.toggle()"
+                          type="button">
+                    <i class="fa-solid fa-calendar-days fs-2"></i>
+                  </button>
+                </div>
+              </ng-container>
+            </div> 
+            <div class="col-1 ms-auto my-auto">
+              <i (click)="deleteRow(i)"
+                 class="fa-solid fa-trash-can cursor-pointer"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="d-flex justify-content-end">
+          <button (click)="addRow()"
+                  class="btn btn-secondary mb-3">Add row</button>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+
+    <button (click)="onSave()"
+            class="btn btn-success text-white m-auto">Save</button>
+  </div>
+</div>
+
+<pre>{{ tableForm.value | json}}</pre>

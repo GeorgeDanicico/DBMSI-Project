@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Table } from '../../models/databases-response.model';
@@ -9,28 +9,14 @@ import { Table } from '../../models/databases-response.model';
   styleUrls: ['./create-table-modal.component.scss'],
 })
 export class CreateTableModalComponent implements OnInit {
+  @Input() tables: Table[] = [];
   @Output() tableToSave = new EventEmitter<Table>();
 
-  attributeTypes = [
-    'VARCHAR',
-    'NVARCHAR',
-    'CHAR',
-    'NCHAR',
-    'INT',
-    'INTEGER',
-    'BIGINT',
-    'NUMERIC',
-    'DECIMAL',
-    'FLOAT',
-    'DATE',
-    'TIME',
-    'DATETIME',
-    'TIMESTAMP',
-    'BOOLEAN',
-    'ENUM',
-    'JSON',
-    'XML',
-  ];
+  referencedTablesOptions: string[] = [];
+  foreignKeyAttributesOptions: string[] = [];
+  referencedAttributesOptions = new Map<number, string[]>();
+
+  attributeTypes = ['VARCHAR(250)', 'INT', 'DATE'];
 
   attributeForm: FormGroup;
 
@@ -51,6 +37,29 @@ export class CreateTableModalComponent implements OnInit {
       ]),
       foreignKeys: this.fb.array([]),
     });
+
+    this.foreignKeys.valueChanges.subscribe((value) => {
+      for (let i = 0; i < value.length; ++i) {
+        const element = value.at(i);
+        console.log(element);
+        const tables = this.tables.filter((table) => table.tableName === element.referencedTable);
+
+        if (tables.length > 0) {
+          const table = tables[0];
+          const attributes = table.attributes.map((attribute) => attribute.attributeName);
+          this.referencedAttributesOptions.set(i, attributes);
+
+          console.log(i);
+          console.log(this.referencedAttributesOptions.get(i))
+        }
+      }
+    });
+
+    this.attributeItems.valueChanges.subscribe((value) => {
+      this.foreignKeyAttributesOptions = value.map((v) => v.attributeName);
+    });
+
+    this.referencedTablesOptions = this.tables.map((table) => table.tableName);
   }
 
   get attributeItems() {

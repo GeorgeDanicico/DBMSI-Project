@@ -2,8 +2,8 @@ import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { switchMap } from 'rxjs/operators';
 import { ToastService } from 'src/app/shared/components/toasts-container/toasts-service';
+import { TablesService } from '../../../shared/services/tables.service';
 import { DatabaseResponse, Table } from '../../models/databases-response.model';
-import { TablesService } from '../../services/tables.service';
 import { CreateTableModalComponent } from '../create-table-modal/create-table-modal.component';
 @Component({
   selector: 'ado-tables',
@@ -26,6 +26,7 @@ export class TablesComponent implements OnChanges {
 
   onNewTable(): void {
     const modalRef = this.modalService.open(CreateTableModalComponent, { size: 'lg' });
+    modalRef.componentInstance.tables = this.tables;
     modalRef.componentInstance.tableToSave
       .pipe(
         switchMap<Table, any>((table) => {
@@ -35,12 +36,15 @@ export class TablesComponent implements OnChanges {
           return this.tableService.fetchTables(this.database.databaseName);
         })
       )
-      .subscribe((response) => {
-        this.tables = response;
-        this.toastService.showSuccess('Table created successfully');
-      }, () => {
-        this.toastService.showError("Could not create table");
-      });
+      .subscribe(
+        (response) => {
+          this.tables = response;
+          this.toastService.showSuccess('Table created successfully');
+        },
+        () => {
+          this.toastService.showError('Could not create table');
+        }
+      );
   }
 
   onTableToDelete(table: Table) {
@@ -51,13 +55,16 @@ export class TablesComponent implements OnChanges {
           return this.tableService.fetchTables(this.database.databaseName);
         })
       )
-      .subscribe((response) => {
-        this.tables = response;
-        this.tableSelected = null;
-        this.toastService.showSuccess('Table deleted successfully');
-      }, () => {
-        this.toastService.showError("Could not delete table");
-      });
+      .subscribe(
+        (response) => {
+          this.tables = response;
+          this.tableSelected = null;
+          this.toastService.showSuccess('Table deleted successfully');
+        },
+        () => {
+          this.toastService.showError('Could not delete table');
+        }
+      );
   }
 
   onTableSelected(table: Table) {
