@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @CrossOrigin("*")
@@ -66,6 +67,15 @@ public class TableController {
             return new ResponseEntity<>(new MessageResponse("Table deleted successfully"), HttpStatus.OK);
         }
         return new ResponseEntity<>(new MessageResponse("Could not delete table"), HttpStatus.BAD_REQUEST);
+    }
+
+    @GetMapping("/databases/{databaseName}/tables/{tableName}/rows")
+    public ResponseEntity<?> getRow(@Valid @PathVariable String databaseName,
+                                       @Valid @PathVariable String tableName) throws Exception {
+        List<?> rows = tableService.getAllRows(databaseName, tableName);
+        Map<String, List<?>> records = new HashMap<>();
+        records.put("records", rows);
+        return new ResponseEntity<>(records, HttpStatus.OK);
     }
 
     @PostMapping("/databases/{databaseName}/tables/{tableName}/insert")
