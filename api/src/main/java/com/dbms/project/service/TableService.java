@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -54,6 +55,9 @@ public class TableService {
         try {
             tableRepository.insertRow(databaseName, tableName, primaryKey, row);
         } catch (Exception e) {
+            if (e.getClass().equals(DBMSException.class)) {
+                throw new DBMSException(e.getMessage());
+            }
         }
     }
 
@@ -68,7 +72,15 @@ public class TableService {
         try {
             tableRepository.deleteRow(databaseName, tableName, rowId);
         } catch (Exception e) {
+
         }
 
+    }
+
+    public List<?> getAllRows(String databaseName, String tableName) throws Exception {
+        JSONObject tbl = TableUtils.getTableFromDatabase(databaseName, tableName);
+        Table table = Table.fromJSON(tbl);
+        List<?> rows = tableRepository.getAllRows(databaseName, table);
+        return rows;
     }
 }
