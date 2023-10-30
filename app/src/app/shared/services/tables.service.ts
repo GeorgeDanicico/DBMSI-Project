@@ -31,8 +31,23 @@ export class TablesService {
       map((response) => {
         const tables: Table[] = response.tables;
         const desiredTable = tables.find((table) => table.tableName === tableName);
+        desiredTable.attributes.map((attr) => (attr.isPrimaryKey = desiredTable.primaryKey.pkAttributes.includes(attr.attributeName)));
         return desiredTable.attributes;
       })
     );
+  }
+
+  saveRow(databaseName: string, tableName: string, row: any) {
+    return this.http.post(`http://localhost:8080/api/databases/${databaseName}/tables/${tableName}/insert`, row);
+  }
+
+  fetchTableValues(databaseName: string, tableName: string): Observable<any[]> {
+    return this.http
+      .get<{ records: any[] }>(`http://localhost:8080/api/databases/${databaseName}/tables/${tableName}/rows`)
+      .pipe(map((response) => response.records));
+  }
+
+  deleteTableRow(databaseName: string, tableName: string, rowId: string){
+    return this.http.delete(`http://localhost:8080/api/databases/${databaseName}/tables/${tableName}/delete/${rowId}`);
   }
 }

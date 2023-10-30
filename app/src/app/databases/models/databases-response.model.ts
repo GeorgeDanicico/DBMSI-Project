@@ -5,7 +5,6 @@ export interface DatabaseResponse {
 
 export interface Table {
     tableName: string,
-    fileName: string,
     foreignKeys: ForeignKey[],
     indexes?: Index[],
     uniqueKeys: string[],
@@ -31,5 +30,6 @@ export interface Index {
 export interface Attribute {
     attributeType: string,
     isNull: number,
-    attributeName: string
+    attributeName: string,
+    isPrimaryKey?: boolean
 }

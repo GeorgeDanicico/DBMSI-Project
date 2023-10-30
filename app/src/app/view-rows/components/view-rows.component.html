@@ -1,8 +1,9 @@
 <div class="d-flex  mb-3">
-  <button class="btn btn-secondary ms-auto" (click)="onInsertValue()">Insert value</button>
+  <button class="btn btn-secondary ms-auto"
+          (click)="onInsertValue()">Insert value</button>
 </div>
 
-<table class="table">
+<table class="table text-center">
   <thead>
     <tr>
       <th scope="col">#</th>
@@ -12,22 +13,10 @@
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <th scope="row">1</th>
-      <td>Mark</td>
-      <td>Otto</td>
-      <td>@mdo</td>
-    </tr>
-    <tr>
-      <th scope="row">2</th>
-      <td>Jacob</td>
-      <td>Thornton</td>
-      <td>@fat</td>
-    </tr>
-    <tr>
-      <th scope="row">3</th>
-      <td colspan="2">Larry the Bird</td>
-      <td>@twitter</td>
+    <tr *ngFor="let row of valueRows; let i = index">
+      <th scope="row">{{ i + 1 }}</th>
+      <td  *ngFor="let attribute of attributes">{{ row[attribute.attributeName] }}</td>
+      <td> <i (click)="onDelete(row)" class="fa-solid fa-trash-can cursor-pointer"></i></td>
     </tr>
   </tbody>
 </table>

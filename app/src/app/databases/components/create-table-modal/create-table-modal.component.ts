@@ -25,7 +25,6 @@ export class CreateTableModalComponent implements OnInit {
   ngOnInit() {
     this.attributeForm = this.fb.group({
       tableName: ['', Validators.required],
-      fileName: ['', Validators.required],
       items: this.fb.array([
         this.fb.group({
           isPrimaryKey: false,
@@ -134,7 +133,6 @@ export class CreateTableModalComponent implements OnInit {
     }
 
     const tableToSave: Table = {
-      fileName: this.attributeForm.value.fileName.toString(),
       tableName: this.attributeForm.value.tableName.toString(),
       attributes: attributes,
       primaryKey: {
