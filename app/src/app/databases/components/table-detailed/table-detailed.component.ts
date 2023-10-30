@@ -1,9 +1,10 @@
 import { Component, Input } from '@angular/core';
+import { Router } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { switchMap } from 'rxjs/operators';
 import { ToastService } from 'src/app/shared/components/toasts-container/toasts-service';
+import { TablesService } from '../../../shared/services/tables.service';
 import { Index, Table } from '../../models/databases-response.model';
-import { TablesService } from '../../services/tables.service';
 import { CreateIndexModalComponent } from '../create-index-modal/create-index-modal.component';
 
 @Component({
@@ -15,7 +16,12 @@ export class TableDetailedComponent {
   @Input() databaseName: string;
   @Input() table: Table;
 
-  constructor(private modalService: NgbModal, private tableService: TablesService, private toastService: ToastService) {}
+  constructor(
+    private router: Router,
+    private modalService: NgbModal,
+    private tableService: TablesService,
+    private toastService: ToastService
+  ) {}
 
   onCreateIndex() {
     const modalRef = this.modalService.open(CreateIndexModalComponent);
@@ -25,10 +31,17 @@ export class TableDetailedComponent {
           return this.tableService.saveIndex(this.databaseName, this.table.tableName, index);
         })
       )
-      .subscribe(() => {
-        this.toastService.showSuccess('Table index created successfully');
-      }, () => {
-        this.toastService.showError('Could not create index for table');
-      });
+      .subscribe(
+        () => {
+          this.toastService.showSuccess('Table index created successfully');
+        },
+        () => {
+          this.toastService.showError('Could not create index for table');
+        }
+      );
+  }
+
+  onViewAllRows() {
+    this.router.navigate([`/databases/${this.databaseName}/tables/${this.table.tableName}`]);
   }
 }
