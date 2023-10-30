@@ -12,6 +12,10 @@ const routes: Routes = [
     children: [{
       path: 'databases',
       loadChildren: () => import('./databases/databases.module').then(m => m.DatabasesModule)
+    },
+    {
+      path: 'databases/:databaseName/tables/:tableName',
+      loadChildren: () => import('./view-rows/view-rows.module').then(m => m.ViewRowsModule)
     }],
   },
 
