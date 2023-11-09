@@ -10,10 +10,12 @@ import com.dbms.project.repository.TableRepository;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class TableService {
@@ -52,8 +54,12 @@ public class TableService {
                 .filter(Attribute::getIsPrimaryKey)
                 .map(attr -> values.get(attr.getAttributeName()))
                 .toList());
+
+        var uniqueAttributes = table.getUniqueKeys().stream()
+                .map(attr -> Pair.of(attr, values.get(attr))).toList();
+
         try {
-            tableRepository.insertRow(databaseName, tableName, primaryKey, row);
+            tableRepository.insertRow(databaseName, tableName, primaryKey, row, uniqueAttributes);
         } catch (Exception e) {
             if (e.getClass().equals(DBMSException.class)) {
                 throw new DBMSException(e.getMessage());
