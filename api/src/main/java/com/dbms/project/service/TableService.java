@@ -124,8 +124,8 @@ public class TableService {
         table.getForeignKeys().forEach(key -> {
             String foreignKeyIndexName = String.format("FK_%s_%s", table.getTableName(), String.join("-", key.getReferencedAttributes()));
             try {
-                PrimaryKey indexPrimaryKey = new PrimaryKey();
-                key.getReferencedAttributes().forEach(attr -> indexPrimaryKey.setPkAttributes(new ArrayList<>(List.of(values.get(attr)))));
+                PrimaryKey indexPrimaryKey = new PrimaryKey(new ArrayList<>());
+                key.getReferencedAttributes().forEach(attr -> indexPrimaryKey.addAttribute(values.get(attr)));
                 if (operation.equals("delete")) {
                     tableRepository.deleteRowForIndex(databaseName, foreignKeyIndexName, indexPrimaryKey.getPk(), primaryKey.getPk(), false);
                 } else {
@@ -142,8 +142,8 @@ public class TableService {
         table.getIndexes().forEach(index -> {
             String indexName = String.format("%s_%s_%s", index.getIsUnique() == 1 ? "UK" : "NUK", table.getTableName(), index.getIndexName());
             try {
-                PrimaryKey indexPrimaryKey = new PrimaryKey();
-                index.getIndexAttributes().forEach(attr -> indexPrimaryKey.setPkAttributes(new ArrayList<>(List.of(values.get(attr)))));
+                PrimaryKey indexPrimaryKey = new PrimaryKey(new ArrayList<>());
+                index.getIndexAttributes().forEach(attr -> indexPrimaryKey.addAttribute(values.get(attr)));
                 if (operation.equals("delete")) {
                     tableRepository.deleteRowForIndex(databaseName, indexName, indexPrimaryKey.getPk(), primaryKey.getPk(), index.getIsUnique() == 1);
                 } else {
