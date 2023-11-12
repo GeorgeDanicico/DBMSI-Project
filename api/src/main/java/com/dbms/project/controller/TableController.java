@@ -61,12 +61,8 @@ public class TableController {
     @DeleteMapping("/databases/{databaseName}/tables/{tableName}")
     public ResponseEntity<?> deleteTable(@Valid @PathVariable String databaseName,
                                          @Valid @PathVariable String tableName) throws Exception {
-        boolean deleted = tableRepository.deleteTable(databaseName, tableName);
-
-        if (deleted) {
-            return new ResponseEntity<>(new MessageResponse("Table deleted successfully"), HttpStatus.OK);
-        }
-        return new ResponseEntity<>(new MessageResponse("Could not delete table"), HttpStatus.BAD_REQUEST);
+        tableService.deleteTable(databaseName, tableName);
+        return new ResponseEntity<>(new MessageResponse("Table deleted successfully"), HttpStatus.OK);
     }
 
     @GetMapping("/databases/{databaseName}/tables/{tableName}/rows")

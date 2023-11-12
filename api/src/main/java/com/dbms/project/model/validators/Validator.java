@@ -1,7 +1,10 @@
 package com.dbms.project.model.validators;
 
 import com.dbms.project.exceptions.DBMSException;
+import com.dbms.project.model.Table;
 
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,8 +25,6 @@ public class Validator {
             if (!matcher.find()) {
                 throw new DBMSException("Invalid date.");
             }
-
-
         }
 
         if (type.contains("int")) {
@@ -32,5 +33,17 @@ public class Validator {
                 throw new DBMSException("Int can contain only digits.");
             }
         }
+    }
+
+    public static void validateForeignKeyConstraint(Table referencedTable, List<String> referencedAttributes) {
+
+        referencedAttributes.forEach(attr -> {
+            var attribute = referencedTable.getAttributes().stream().filter(a -> a.getAttributeName().equals(attr)).findFirst().orElse(null);
+            if (attribute == null) {
+                throw new DBMSException("400", "Invalid foreign key.");
+            }
+
+
+        });
     }
 }

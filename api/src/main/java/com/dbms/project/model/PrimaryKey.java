@@ -36,7 +36,7 @@ public class PrimaryKey {
         if (pkAttributes.size() == 1) {
             return pkAttributes.get(0);
         }
-        return pkAttributes.stream().reduce("", (result, value) -> result + value + ";");
+        return String.join(",", pkAttributes);
     }
 
     public JSONObject toJSON() {
