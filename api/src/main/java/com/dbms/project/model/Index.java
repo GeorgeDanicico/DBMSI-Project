@@ -42,4 +42,9 @@ public class Index {
 
         return obj;
     }
+
+    public String getIndexTableName(String tableName) {
+        String prefix = isUnique == 1 ? "UK" : "NUK";
+        return prefix + "_" + tableName + "_" + indexName;
+    }
 }

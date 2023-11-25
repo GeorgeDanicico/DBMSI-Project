@@ -4,6 +4,7 @@ import com.dbms.project.db.MongoUtils;
 import com.dbms.project.db.TableUtils;
 import com.dbms.project.exceptions.DBMSException;
 import com.dbms.project.model.Index;
+import com.dbms.project.model.Operation;
 import com.dbms.project.model.PrimaryKey;
 import com.dbms.project.model.Table;
 import com.mongodb.client.FindIterable;
@@ -114,7 +115,7 @@ public class TableRepository {
             if (isUnique) {
                 throw new DBMSException("400", "Violating Unique Key Constraint");
             }
-            var newValue = index.get("value") + ";" + pk + ";";
+            var newValue = index.get("value") + ";" + pk;
             mongoTemplate.getCollection(indexName).updateOne(Filters.eq("_id", indexPrimaryKey.getPk()), new Document("$set", new Document("value", newValue)));
         }
     }
@@ -144,7 +145,7 @@ public class TableRepository {
         }
     }
 
-    public List<?> getAllRows(String databaseName, Table table) throws Exception{
+    public List<Map<String, String>> getAllRows(String databaseName, Table table) throws Exception{
         MongoTemplate mongoTemplate = mongoUtils.mongoTemplate(databaseName);
         FindIterable<Document> documents = mongoTemplate.getCollection(table.getTableName()).find();
 
@@ -155,7 +156,15 @@ public class TableRepository {
             List<Object> values = new ArrayList<>(cursor.next().values());
             int i = 0;
 
-            String attributesValues = ((String) values.get(0) + ";") + ((String) values.get(1));
+            String[] idValues = ((String) values.get(0)).split(",");
+            String attributesValues = "";
+            int j = 0;
+            while (j < idValues.length) {
+                attributesValues += idValues[j] + ";";
+                j++;
+            }
+
+            attributesValues += ((String) values.get(1));
             String[] attributes = attributesValues.split(";");
             while (i < table.getAttributes().size()) {
                 rowValues.put(table.getAttributes().get(i).getAttributeName(), attributes[i]);
@@ -184,7 +193,7 @@ public class TableRepository {
                     if (previousValues[i].equals(deletedPK)) {
                         continue;
                     }
-                    if (previousValues.length > 2) {
+                    if (previousValues.length > 2 && i != previousValues.length - 1) {
                         newValue.append(previousValues[i]).append(";");
                     } else {
                         newValue.append(previousValues[i]);
@@ -250,5 +259,47 @@ public class TableRepository {
         } catch (Exception e) {
             throw new DBMSException("400", "Cannot delete. Row is referenced by another table.");
         }
+    }
+
+    public List<Map<String, String>> getAllRecordsWithCondition(
+            String databaseName, Table parentTable, String indexName, String indexKey, Operation operation
+    ) throws Exception {
+
+        MongoTemplate mongoTemplate = mongoUtils.mongoTemplate(databaseName);
+        FindIterable<Document> documents = getMongoDocuments(mongoTemplate, indexName, indexKey, operation);
+        if (documents == null) {
+            throw new DBMSException("400", "Invalid operation");
+        }
+
+        List<Map<String, String>> records = new ArrayList<>();
+        MongoCursor<Document> cursor = documents.iterator();
+        while (cursor.hasNext()) {
+            Map<String, String> rowValues = new HashMap<>();
+            List<Object> values = new ArrayList<>(cursor.next().values());
+            int i = 0;
+
+            String attributesValues = ((String) values.get(1));
+            String[] attributes = attributesValues.split(";");
+            while (i < attributes.length) {
+                rowValues = getRow(databaseName, parentTable, attributes[i]);
+                i++;
+                records.add(rowValues);
+            }
+        }
+
+        return records;
+    }
+
+    private FindIterable<Document> getMongoDocuments(MongoTemplate mongoTemplate, String indexName, String indexKey, Operation operation) {
+        if (operation.equals(Operation.EQUAL)) {
+            return mongoTemplate.getCollection(indexName).find(Filters.eq("_id", indexKey));
+        } else if (operation.equals(Operation.LESS_THAN)) {
+            return mongoTemplate.getCollection(indexName).find(Filters.lt("_id", indexKey));
+        } else if (operation.equals(Operation.GREATER_THAN)) {
+            return mongoTemplate.getCollection(indexName).find(Filters.gt("_id", indexKey));
+        } else if (operation.equals(Operation.LIKE)) {
+            return mongoTemplate.getCollection(indexName).find(Filters.regex("_id", "^" + indexKey + "$"));
+        }
+        return null;
     }
 }

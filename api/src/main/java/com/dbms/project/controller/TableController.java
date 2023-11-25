@@ -2,6 +2,7 @@ package com.dbms.project.controller;
 
 import com.dbms.project.dto.MessageResponse;
 import com.dbms.project.model.Index;
+import com.dbms.project.model.Operation;
 import com.dbms.project.model.Table;
 import com.dbms.project.repository.TableRepository;
 import com.dbms.project.service.TableService;
@@ -32,6 +33,16 @@ public class TableController {
         Map<String, JSONArray> response = new HashMap<>();
         response.put("tables", tableRepository.getAllTables(databaseName));
 
+        return response;
+    }
+
+    @PostMapping("/databases/{databaseName}/tables/{tableName}/select")
+    public Map<?, ?> getRecordsFromTable(@Valid @PathVariable String databaseName,
+                                         @Valid @PathVariable String tableName,
+                                         @Valid @RequestBody SelectBody selectBody) throws Exception {
+        Map<String, List<?>> response = new HashMap<>();
+        response.put("records", tableService.getAllRecordsBasedOnCriteria(
+                databaseName, tableName, selectBody));
         return response;
     }
 
@@ -89,4 +100,8 @@ public class TableController {
         tableService.deleteRow(databaseName, tableName, rowId);
         return new ResponseEntity<>(new MessageResponse("Row has been deleted successfully"), HttpStatus.OK);
     }
+
+    public record Condition(String columnName, Operation operation, String value) { }
+
+    public record SelectBody(List<String> projection, List<Condition> conditions, Boolean isDistinct) { }
 }
