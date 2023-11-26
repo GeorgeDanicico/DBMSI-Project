@@ -16,6 +16,10 @@ const routes: Routes = [
     {
       path: 'databases/:databaseName/tables/:tableName',
       loadChildren: () => import('./view-rows/view-rows.module').then(m => m.ViewRowsModule)
+    },
+    {
+      path: 'databases/:databaseName/tables/:tableName/select',
+      loadChildren: () => import('./select-screen/select-screen.module').then(m => m.SelectScreenModule)
     }],
   },
 
