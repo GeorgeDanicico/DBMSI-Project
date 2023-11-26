@@ -44,4 +44,8 @@ export class TableDetailedComponent {
   onViewAllRows() {
     this.router.navigate([`/databases/${this.databaseName}/tables/${this.table.tableName}`]);
   }
+
+  onSelectValues() {
+    this.router.navigate([`/databases/${this.databaseName}/tables/${this.table.tableName}/select`]);
+  }
 }

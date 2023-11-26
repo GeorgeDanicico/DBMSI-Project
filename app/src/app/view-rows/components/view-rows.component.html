@@ -1,6 +1,9 @@
 <div class="d-flex  mb-3">
-  <button class="btn btn-secondary ms-auto"
-          (click)="onInsertValue()">Insert value</button>
+  <div class="ms-auto">
+    <button class="btn btn-secondary me-3"
+            (click)="onInsertValue()">Insert value</button>
+    <a class="btn btn-secondary" routerLink="./select">Select values</a>
+  </div>
 </div>
 
 <table class="table text-center">
@@ -15,8 +18,9 @@
   <tbody>
     <tr *ngFor="let row of valueRows; let i = index">
       <th scope="row">{{ i + 1 }}</th>
-      <td  *ngFor="let attribute of attributes">{{ row[attribute.attributeName] }}</td>
-      <td> <i (click)="onDelete(row)" class="fa-solid fa-trash-can cursor-pointer"></i></td>
+      <td *ngFor="let attribute of attributes">{{ row[attribute.attributeName] }}</td>
+      <td> <i (click)="onDelete(row)"
+           class="fa-solid fa-trash-can cursor-pointer"></i></td>
     </tr>
   </tbody>
 </table>

@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { Query } from 'src/app/select-screen/models/query.model';
 import { Attribute, Index, Table } from '../../databases/models/databases-response.model';
 
 @Injectable({ providedIn: 'root' })
@@ -16,6 +17,12 @@ export class TablesService {
 
   saveTable(databaseName: string, table: Table): Observable<void> {
     return this.http.post<void>(`http://localhost:8080/api/databases/${databaseName}/tables`, { ...table });
+  }
+
+  fetchTableValuesBySelect(databaseName: string, tableName: string, query: Query): Observable<[]> {
+    return this.http
+      .post<{ records: [] }>(`http://localhost:8080/api/databases/${databaseName}/tables/${tableName}/select`, { ...query })
+      .pipe(map((resp) => resp.records));
   }
 
   deleteTable(databaseName: string, tableName: string): Observable<void> {
@@ -47,7 +54,7 @@ export class TablesService {
       .pipe(map((response) => response.records));
   }
 
-  deleteTableRow(databaseName: string, tableName: string, rowId: string){
+  deleteTableRow(databaseName: string, tableName: string, rowId: string) {
     return this.http.delete(`http://localhost:8080/api/databases/${databaseName}/tables/${tableName}/delete/${rowId}`);
   }
 }
