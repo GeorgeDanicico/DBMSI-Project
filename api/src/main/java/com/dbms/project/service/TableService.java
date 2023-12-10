@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class TableService {
@@ -22,139 +23,136 @@ public class TableService {
         this.tableRepository = tableRepository;
     }
 
+    public List<?> getAllRecordsBasedOnJoinAndCriteria(
+            String databaseName,
+            String initialTable,
+            TableController.SelectBodyJoin selectBodyJoin
+    ) throws Exception {
+        List<TableController.JoinCondition> joinConditions = selectBodyJoin.joinConditions();
+        List<String> projection = selectBodyJoin.projection();
+        Boolean isDistinct = selectBodyJoin.isDistinct();
 
-    public List<?> getAllRecordsBasedOnCriteria(String databaseName, String tableName, TableController.SelectBody selectBody) throws Exception {
-        Table table = Table.fromJSON(TableUtils.getTableFromDatabase(databaseName, tableName));
-        PrimaryKey tablePrimaryKey = table.getPrimaryKey();
-        List<Index> indexes = table.getIndexes();
-        List<String> uniqueKeys = table.getUniqueKeys();
-        List<ForeignKey> foreignKeys = table.getForeignKeys();
+        List<String> tables = joinConditions.stream().map(TableController.JoinCondition::tableName).distinct().collect(Collectors.toList());
+        tables.add(0, initialTable);
+        Map<String, List<TableController.Condition>> tableConditions = new HashMap<>();
+        tables.forEach(table -> tableConditions.put(table, new ArrayList<>()));
+        selectBodyJoin.conditions().forEach(condition -> {
+            var tableName = condition.columnName().split("\\.")[0];
+            TableController.Condition newCondition = new TableController.Condition(
+                    condition.columnName().split("\\.")[1],
+                    condition.operation(),
+                    condition.value()
+            );
+            tableConditions.get(tableName).add(newCondition);
+        });
 
-        List<String> projection = selectBody.projection();
-        List<TableController.Condition> conditions = selectBody.conditions();
-        Boolean isDistinct = selectBody.isDistinct();
-        List<Map<String, String>> records = new ArrayList<>();
+        List<Map<String, String>> previousRecords = getAllRecordsBasedOnCriteria(databaseName, tables.get(0),
+                tableConditions.get(tables.get(0)));
 
-        List<String> conditionsAttributes = conditions.stream().map(TableController.Condition::columnName).toList();
-        Optional<ForeignKey> usedForeignKey = foreignKeys.stream().filter(key -> new HashSet<>(key.getReferencedAttributes()).containsAll(conditionsAttributes)).findFirst();
-        Optional<String> usedUniqueKey = uniqueKeys.stream().filter(key -> new HashSet<>(List.of(key)).containsAll(conditionsAttributes)).findFirst();
-        Optional<Index> usedIndex = indexes.stream().filter(index -> new HashSet<>(index.getIndexAttributes()).containsAll(conditionsAttributes)).findFirst();
-
-        // There exists a manually created unique/non unique index that contains all the attributes in the where clause
-        if (usedIndex.isPresent()) {
-            var index = usedIndex.get();
-            var indexPrimaryKey = new PrimaryKey(new ArrayList<>());
-            if (conditionsAttributes.size() == 1) {
-                indexPrimaryKey.addAttribute(conditions.get(0).value());
-                records = tableRepository.getAllRecordsWithCondition(databaseName, table, index.getIndexTableName(table.getTableName()),
-                        indexPrimaryKey.getPk(), conditions.get(0).operation());
-            } else if (usedIndex.get().getIndexAttributes().size() == conditionsAttributes.size()) {
-                conditions.forEach(condition -> indexPrimaryKey.addAttribute(condition.value()));
-                records = tableRepository.getAllRecordsWithCondition(databaseName, table, index.getIndexTableName(table.getTableName()), indexPrimaryKey.getPk(), Operation.EQUAL);
-            } else {
-                for (int i = 0; i < usedIndex.get().getIndexAttributes().size(); i++) {
-                    var indexAttribute = usedIndex.get().getIndexAttributes().get(i);
-                    if (conditionsAttributes.contains(indexAttribute)) {
-                        indexPrimaryKey.addAttribute(conditions.get(conditionsAttributes.indexOf(indexAttribute)).value());
-                    } else {
-                        indexPrimaryKey.addAttribute(".*?");
-                    }
-                }
-                records = tableRepository.getAllRecordsWithCondition(databaseName, table, index.getIndexTableName(table.getTableName()), indexPrimaryKey.getPk(), Operation.LIKE);
-                records = records.stream()
-                        .filter(record -> conditions.stream()
-                                .allMatch(condition -> record.get(condition.columnName()).equals(condition.value())))
-                        .toList();
-            }
-        } // There exists a  foreign key that contains all the attributes in the where clause
-        else if (usedForeignKey.isPresent()) {
-            var fk = usedForeignKey.get();
-            var foreignKeyIndexName = String.format("FK_%s_%s", table.getTableName(), String.join("-", fk.getReferencedAttributes()));
-            var indexPrimaryKey = new PrimaryKey(new ArrayList<>());
-            if (conditionsAttributes.size() == 1) {
-                indexPrimaryKey.addAttribute(conditions.get(0).value());
-                records = tableRepository.getAllRecordsWithCondition(databaseName, table, foreignKeyIndexName,
-                        indexPrimaryKey.getPk(), conditions.get(0).operation());
-            } else if (fk.getReferencedAttributes().size() == conditionsAttributes.size()) {
-                conditions.forEach(condition -> indexPrimaryKey.addAttribute(condition.value()));
-                records = tableRepository.getAllRecordsWithCondition(databaseName, table, foreignKeyIndexName, indexPrimaryKey.getPk(), Operation.EQUAL);
-            } else {
-                for (int i = 0; i < fk.getReferencedAttributes().size(); i++) {
-                    var fkAttribute = fk.getReferencedAttributes().get(i);
-                    if (conditionsAttributes.contains(fkAttribute)) {
-                        indexPrimaryKey.addAttribute(conditions.get(conditionsAttributes.indexOf(fkAttribute)).value());
-                    } else {
-                        indexPrimaryKey.addAttribute(".*?");
-                    }
-                }
-                records = tableRepository.getAllRecordsWithCondition(databaseName, table, foreignKeyIndexName, indexPrimaryKey.getPk(), Operation.LIKE);
-                records = records.stream()
-                        .filter(record -> conditions.stream()
-                                .allMatch(condition -> record.get(condition.columnName()).equals(condition.value())))
-                        .toList();
-            }
-        } // There exists a manually created unique key that contains all the attributes in the where clause
-        else if (usedUniqueKey.isPresent()) {
-            var uniqueKey = usedUniqueKey.get();
-            var uniqueKeyIndexName = String.format("UK_%s_%s", table.getTableName(), uniqueKey);
-            var indexPrimaryKey = new PrimaryKey(new ArrayList<>());
-            indexPrimaryKey.addAttribute(conditions.get(0).value());
-            records = tableRepository.getAllRecordsWithCondition(databaseName, table, uniqueKeyIndexName,
-                    indexPrimaryKey.getPk(), conditions.get(0).operation());
-        } // Get all the data from the existing indexes and join the results
-        else {
-            List<Map<String, String>> previousRecords = null;
-            for (var condition : conditions) {
-                var conditionAttribute = condition.columnName();
-                var conditionValue = condition.value();
-                var conditionOperation = condition.operation();
-                var conditionIndex = indexes.stream().filter(index -> List.of(conditionAttribute).containsAll(index.getIndexAttributes()))
-                        .map((index) -> index.getIndexTableName(table.getTableName())).findFirst();
-                if (conditionIndex.isEmpty()) {
-                    conditionIndex = uniqueKeys.stream().filter(key -> List.of(conditionAttribute).containsAll(List.of(key)))
-                            .map((key) -> String.format("UK_%s_%s", table.getTableName(), key)).findFirst();
-                }
-                if (conditionIndex.isEmpty()) {
-                    conditionIndex = foreignKeys.stream().filter(key -> List.of(conditionAttribute).containsAll(key.getReferencedAttributes()))
-                            .map((key) -> String.format("FK_%s_%s", table.getTableName(), String.join("-", key.getReferencedAttributes()))).findFirst();
-                }
-
-                if (conditionIndex.isPresent()) {
-                    var indexName = conditionIndex.get();
-                    var indexPrimaryKey = new PrimaryKey(new ArrayList<>());
-                    indexPrimaryKey.addAttribute(conditionValue);
-                    var newRecords = tableRepository.getAllRecordsWithCondition(databaseName, table, indexName,
-                            indexPrimaryKey.getPk(), conditionOperation);
-                    if (previousRecords != null) {
-                        var finalPreviousRecords = previousRecords;
-                        previousRecords = newRecords.stream()
-                                .filter(record -> finalPreviousRecords.stream()
-                                        .anyMatch(previousRecord -> tablePrimaryKey.getPkAttributes().stream()
-                                                .filter(attr -> previousRecord.get(attr).equals(record.get(attr)))
-                                                .toList().size() == tablePrimaryKey.getPkAttributes().size()))
-                                .toList();
-                    } else {
-                        previousRecords = newRecords;
-                    }
-                } else {
-                    var rows = tableRepository.getAllRows(databaseName, table);
-                    rows = selectRecordsFromCriteria(conditionAttribute, conditionValue, rows, conditionOperation.getOperation());
-
-                    if (previousRecords != null) {
-                        var finalPreviousRecords = previousRecords;
-                        previousRecords = rows.stream()
-                                .filter(record -> finalPreviousRecords.stream()
-                                        .anyMatch(previousRecord -> tablePrimaryKey.getPkAttributes().stream()
-                                                .filter(attr -> previousRecord.get(attr).equals(record.get(attr)))
-                                                .toList().size() == tablePrimaryKey.getPkAttributes().size()))
-                                .toList();
-                    } else {
-                        previousRecords = rows;
-                    }
-                }
-            }
-            records = previousRecords;
+        for (int i = 0; i < joinConditions.size(); i++) {
+            var joinTable = joinConditions.get(i).tableName();
+            var joinAttribute = joinConditions.get(i).columnName();
+//            previousRecords = sortMergeJoin(previousRecords, getAllRecordsBasedOnCriteria(databaseName, joinTable,
+//                    tableConditions.get(joinTable)), joinAttribute);
+            previousRecords = hashJoin(previousRecords, getAllRecordsBasedOnCriteria(databaseName, joinTable,
+                    tableConditions.get(joinTable)), joinAttribute);
         }
+
+        var returnedRecords = previousRecords.stream()
+                .map(record -> record.entrySet().stream()
+                        .filter(entry -> projection.contains(entry.getKey()))
+                        .toList().stream()
+                        .collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), Map::putAll))
+                .toList();
+
+        if (isDistinct) {
+            return getDistinctMaps(returnedRecords);
+        }
+
+        return returnedRecords;
+    }
+
+    public List<Map<String, String>> sortMergeJoin(List<Map<String, String>> table1,
+                                                   List<Map<String, String>> table2,
+                                                   String joinAttribute) {
+        Comparator<Map<String, String>> rowComparator = new ColumnComparator(joinAttribute);
+        var sortedTable1 = new ArrayList<>(table1);
+        var sortedTable2 = new ArrayList<>(table2);
+        sortedTable1.sort(rowComparator);
+        sortedTable2.sort(rowComparator);
+        List<Map<String, String>> result = new ArrayList<>();
+
+        int i = 0, j = 0;
+        while (i < table1.size() && j < table2.size()) {
+            Map<String, String> row1 = sortedTable1.get(i);
+            Map<String, String> row2 = sortedTable2.get(j);
+
+
+            int previousJ = j;
+            int compareResult = row1.get(joinAttribute).compareTo(row2.get(joinAttribute));
+            while (compareResult == 0 && j < table2.size()) {
+                Map<String, String> joinedRow = new HashMap<>();
+                Map<String, String> finalRow = row2;
+                row1.keySet().forEach(key -> joinedRow.put(key, row1.get(key)));
+                row2.keySet().forEach(key -> joinedRow.put(key, finalRow.get(key)));
+                result.add(joinedRow);
+                j++;
+                if (j < table2.size()) {
+                    row2 = sortedTable2.get(j);
+                    compareResult = row1.get(joinAttribute).compareTo(row2.get(joinAttribute));
+                }
+            }
+            if (compareResult < 0) {
+                i++;
+            } else {
+                j++;
+            }
+
+            if (i > 0 && j <= table2.size() && row1.get(joinAttribute).compareTo(sortedTable1.get(i - 1).get(joinAttribute)) == 0) {
+                j = previousJ;
+            }
+        }
+
+        return result;
+    }
+
+    public List<Map<String, String>> hashJoin(List<Map<String, String>> table1, List<Map<String, String>> table2, String joinColumn) {
+        // Create a hash table for the smaller table (for efficiency)
+        List<Map<String, String>> smallerTable = table1.size() <= table2.size() ? table1 : table2;
+        List<Map<String, String>> largerTable = smallerTable == table1 ? table2 : table1;
+
+        Map<String, List<Map<String, String>>> hashTable = new HashMap<>();
+        for (Map<String, String> row : smallerTable) {
+            String keyValue = row.get(joinColumn);
+            hashTable.computeIfAbsent(keyValue, k -> new ArrayList<>()).add(row);
+        }
+
+        // Join with the larger table
+        List<Map<String, String>> result = new ArrayList<>();
+        for (Map<String, String> row : largerTable) {
+            String keyValue = row.get(joinColumn);
+            List<Map<String, String>> matchedRows = hashTable.get(keyValue);
+
+            if (matchedRows != null) {
+                for (Map<String, String> matchedRow : matchedRows) {
+                    Map<String, String> joinedRow = new HashMap<>();
+                    matchedRow.keySet().forEach(key -> joinedRow.put(key, matchedRow.get(key)));
+                    row.keySet().forEach(key -> joinedRow.put(key, row.get(key)));
+                    result.add(joinedRow);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public List<?> getRecordsBasedOnCriteria(
+            String databaseName,
+            String tableName,
+            List<String> projection,
+            List<TableController.Condition> conditions,
+            Boolean isDistinct) throws Exception {
+        List<Map<String, String>> records = getAllRecordsBasedOnCriteria(databaseName, tableName, conditions);
 
         var returnedRecords = records.stream()
                 .map(record -> record.entrySet().stream()
@@ -273,7 +271,7 @@ public class TableService {
                     var value = record.get(columnName);
                     return switch (operation) {
                         case "EQUAL" -> value.equals(actualValue);
-                        case "LESS_THAN" -> value.compareTo(actualValue) == 0;
+                        case "LESS_THAN" -> value.compareTo(actualValue) < 0;
                         case "GREATER_THAN" -> value.compareTo(actualValue) > 0;
                         case "LIKE" -> value.matches(actualValue);
                         default -> true;
@@ -454,5 +452,142 @@ public class TableService {
         distinctMaps.addAll(maps);
 
         return new ArrayList<>(distinctMaps);
+    }
+
+    public List<Map<String, String>> getAllRecordsBasedOnCriteria(
+            String databaseName,
+            String tableName,
+            List<TableController.Condition> conditions
+    ) throws Exception {
+        Table table = Table.fromJSON(TableUtils.getTableFromDatabase(databaseName, tableName));
+        PrimaryKey tablePrimaryKey = table.getPrimaryKey();
+        List<Index> indexes = table.getIndexes();
+        List<String> uniqueKeys = table.getUniqueKeys();
+        List<ForeignKey> foreignKeys = table.getForeignKeys();
+
+        List<Map<String, String>> records = new ArrayList<>();
+
+        List<String> conditionsAttributes = conditions.stream().map(TableController.Condition::columnName).toList();
+        Optional<ForeignKey> usedForeignKey = foreignKeys.stream().filter(key -> new HashSet<>(key.getReferencedAttributes()).containsAll(conditionsAttributes)).findFirst();
+        Optional<String> usedUniqueKey = uniqueKeys.stream().filter(key -> new HashSet<>(List.of(key)).containsAll(conditionsAttributes)).findFirst();
+        Optional<Index> usedIndex = indexes.stream().filter(index -> new HashSet<>(index.getIndexAttributes()).containsAll(conditionsAttributes)).findFirst();
+
+        // There exists a manually created unique/non unique index that contains all the attributes in the where clause
+        if (usedIndex.isPresent()) {
+            var index = usedIndex.get();
+            var indexPrimaryKey = new PrimaryKey(new ArrayList<>());
+            if (conditionsAttributes.size() == 1 && index.getIndexAttributes().size() == 1) {
+                indexPrimaryKey.addAttribute(conditions.get(0).value());
+                records = tableRepository.getAllRecordsWithCondition(databaseName, table, index.getIndexTableName(table.getTableName()),
+                        indexPrimaryKey.getPk(), conditions.get(0).operation());
+            } else if (usedIndex.get().getIndexAttributes().size() == conditionsAttributes.size()) {
+                conditions.forEach(condition -> indexPrimaryKey.addAttribute(condition.value()));
+                records = tableRepository.getAllRecordsWithCondition(databaseName, table, index.getIndexTableName(table.getTableName()), indexPrimaryKey.getPk(), Operation.EQUAL);
+            } else {
+                for (int i = 0; i < usedIndex.get().getIndexAttributes().size(); i++) {
+                    var indexAttribute = usedIndex.get().getIndexAttributes().get(i);
+                    if (conditionsAttributes.contains(indexAttribute)) {
+                        indexPrimaryKey.addAttribute(conditions.get(conditionsAttributes.indexOf(indexAttribute)).value());
+                    } else {
+                        indexPrimaryKey.addAttribute(".*?");
+                    }
+                }
+                records = tableRepository.getAllRecordsWithCondition(databaseName, table, index.getIndexTableName(table.getTableName()), indexPrimaryKey.getPk(), Operation.LIKE);
+                records = records.stream()
+                        .filter(record -> conditions.stream()
+                                .allMatch(condition -> record.get(condition.columnName()).equals(condition.value())))
+                        .toList();
+            }
+        } // There exists a  foreign key that contains all the attributes in the where clause
+        else if (usedForeignKey.isPresent()) {
+            var fk = usedForeignKey.get();
+            var foreignKeyIndexName = String.format("FK_%s_%s", table.getTableName(), String.join("-", fk.getReferencedAttributes()));
+            var indexPrimaryKey = new PrimaryKey(new ArrayList<>());
+            if (conditionsAttributes.size() == 1) {
+                indexPrimaryKey.addAttribute(conditions.get(0).value());
+                records = tableRepository.getAllRecordsWithCondition(databaseName, table, foreignKeyIndexName,
+                        indexPrimaryKey.getPk(), conditions.get(0).operation());
+            } else if (fk.getReferencedAttributes().size() == conditionsAttributes.size()) {
+                conditions.forEach(condition -> indexPrimaryKey.addAttribute(condition.value()));
+                records = tableRepository.getAllRecordsWithCondition(databaseName, table, foreignKeyIndexName, indexPrimaryKey.getPk(), Operation.EQUAL);
+            } else {
+                for (int i = 0; i < fk.getReferencedAttributes().size(); i++) {
+                    var fkAttribute = fk.getReferencedAttributes().get(i);
+                    if (conditionsAttributes.contains(fkAttribute)) {
+                        indexPrimaryKey.addAttribute(conditions.get(conditionsAttributes.indexOf(fkAttribute)).value());
+                    } else {
+                        indexPrimaryKey.addAttribute(".*?");
+                    }
+                }
+                records = tableRepository.getAllRecordsWithCondition(databaseName, table, foreignKeyIndexName, indexPrimaryKey.getPk(), Operation.LIKE);
+                records = records.stream()
+                        .filter(record -> conditions.stream()
+                                .allMatch(condition -> record.get(condition.columnName()).equals(condition.value())))
+                        .toList();
+            }
+        } // There exists a manually created unique key that contains all the attributes in the where clause
+        else if (usedUniqueKey.isPresent()) {
+            var uniqueKey = usedUniqueKey.get();
+            var uniqueKeyIndexName = String.format("UK_%s_%s", table.getTableName(), uniqueKey);
+            var indexPrimaryKey = new PrimaryKey(new ArrayList<>());
+            indexPrimaryKey.addAttribute(conditions.get(0).value());
+            records = tableRepository.getAllRecordsWithCondition(databaseName, table, uniqueKeyIndexName,
+                    indexPrimaryKey.getPk(), conditions.get(0).operation());
+        } // Get all the data from the existing indexes and join the results
+        else {
+            List<Map<String, String>> previousRecords = null;
+            for (var condition : conditions) {
+                var conditionAttribute = condition.columnName();
+                var conditionValue = condition.value();
+                var conditionOperation = condition.operation();
+                var conditionIndex = indexes.stream().filter(index -> List.of(conditionAttribute).containsAll(index.getIndexAttributes()))
+                        .map((index) -> index.getIndexTableName(table.getTableName())).findFirst();
+                if (conditionIndex.isEmpty()) {
+                    conditionIndex = uniqueKeys.stream().filter(key -> List.of(conditionAttribute).containsAll(List.of(key)))
+                            .map((key) -> String.format("UK_%s_%s", table.getTableName(), key)).findFirst();
+                }
+                if (conditionIndex.isEmpty()) {
+                    conditionIndex = foreignKeys.stream().filter(key -> List.of(conditionAttribute).containsAll(key.getReferencedAttributes()))
+                            .map((key) -> String.format("FK_%s_%s", table.getTableName(), String.join("-", key.getReferencedAttributes()))).findFirst();
+                }
+
+                if (conditionIndex.isPresent()) {
+                    var indexName = conditionIndex.get();
+                    var indexPrimaryKey = new PrimaryKey(new ArrayList<>());
+                    indexPrimaryKey.addAttribute(conditionValue);
+                    var newRecords = tableRepository.getAllRecordsWithCondition(databaseName, table, indexName,
+                            indexPrimaryKey.getPk(), conditionOperation);
+                    if (previousRecords != null) {
+                        var finalPreviousRecords = previousRecords;
+                        previousRecords = newRecords.stream()
+                                .filter(record -> finalPreviousRecords.stream()
+                                        .anyMatch(previousRecord -> tablePrimaryKey.getPkAttributes().stream()
+                                                .filter(attr -> previousRecord.get(attr).equals(record.get(attr)))
+                                                .toList().size() == tablePrimaryKey.getPkAttributes().size()))
+                                .toList();
+                    } else {
+                        previousRecords = newRecords;
+                    }
+                } else {
+                    var rows = tableRepository.getAllRows(databaseName, table);
+                    rows = selectRecordsFromCriteria(conditionAttribute, conditionValue, rows, conditionOperation.getOperation());
+
+                    if (previousRecords != null) {
+                        var finalPreviousRecords = previousRecords;
+                        previousRecords = rows.stream()
+                                .filter(record -> finalPreviousRecords.stream()
+                                        .anyMatch(previousRecord -> tablePrimaryKey.getPkAttributes().stream()
+                                                .filter(attr -> previousRecord.get(attr).equals(record.get(attr)))
+                                                .toList().size() == tablePrimaryKey.getPkAttributes().size()))
+                                .toList();
+                    } else {
+                        previousRecords = rows;
+                    }
+                }
+            }
+            records = previousRecords;
+        }
+
+        return records;
     }
 }

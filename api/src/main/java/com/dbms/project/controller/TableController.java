@@ -41,8 +41,18 @@ public class TableController {
                                          @Valid @PathVariable String tableName,
                                          @Valid @RequestBody SelectBody selectBody) throws Exception {
         Map<String, List<?>> response = new HashMap<>();
-        response.put("records", tableService.getAllRecordsBasedOnCriteria(
-                databaseName, tableName, selectBody));
+        response.put("records", tableService.getRecordsBasedOnCriteria(
+                databaseName, tableName, selectBody.projection(),
+                selectBody.conditions(), selectBody.isDistinct()));
+        return response;
+    }
+
+    @PostMapping("/databases/{databaseName}/tables/select/join")
+    public Map<?, ?> getRecordsFromTable(@Valid @PathVariable String databaseName,
+                                         @Valid @RequestBody SelectBodyJoin selectBodyJoin) throws Exception {
+        Map<String, List<?>> response = new HashMap<>();
+        response.put("records", tableService.getAllRecordsBasedOnJoinAndCriteria(
+                databaseName, selectBodyJoin.initialTableName, selectBodyJoin));
         return response;
     }
 
@@ -103,5 +113,13 @@ public class TableController {
 
     public record Condition(String columnName, Operation operation, String value) { }
 
+    public record JoinCondition(String columnName, String tableName) { }
+
     public record SelectBody(List<String> projection, List<Condition> conditions, Boolean isDistinct) { }
+
+    public record SelectBodyJoin(List<String> projection,
+                                 List<Condition> conditions,
+                                 Boolean isDistinct,
+                                 String initialTableName,
+                                 List<JoinCondition> joinConditions) { }
 }
