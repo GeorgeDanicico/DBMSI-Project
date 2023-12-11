@@ -26,7 +26,7 @@
                       id="floatingAttribute"
                       formControlName="attributeName"
                       placeholder="Attribute">
-                <option *ngFor="let option of attributes"
+                <option *ngFor="let option of attributesProjection"
                         [value]="option">{{ option }}</option>
               </select>
               <label for="floatingAttribute">Attributes</label>
@@ -48,58 +48,114 @@
       </div>
 
 
-      <div formArrayName="conditions"
-           class="row">
+      <div class="row">
         <div class="mb-3">
           FROM {{ tableName }}
         </div>
-        <div class="mb-3">
-          WHERE
+
+        <div formArrayName="join">
+          <div *ngIf="joinItems.length > 0"
+               class="mb-3">
+            JOIN
+          </div>
+          <div *ngFor="let item of joinItems.controls; let i = index"
+               [formGroupName]="i"
+               class="d-flex flex-row mb-3">
+            <div class="form-floating me-3 col">
+              <select class="form-select"
+                      id="floatingTable"
+                      formControlName="table"
+                      placeholder="table">
+                <option *ngFor="let option of tablesName"
+                        [value]="option">{{ option }}</option>
+              </select>
+              <label for="floatingTable">Tables</label>
+            </div>
+            <div class="m-auto me-3">
+              ON
+            </div>
+            <div class="form-floating me-3 col">
+              <select class="form-select"
+                      id="floatingAttribute"
+                      formControlName="attribute"
+                      placeholder="attribute">
+                <option *ngFor="let option of attributesJoin[i]"
+                        [value]="option">{{ option }}</option>
+              </select>
+              <label for="floatingAttribute">Attributes</label>
+            </div>
+            <div class="col m-auto">
+              <i (click)="deleteJoin(i)"
+                 class="fa-solid fa-trash-can cursor-pointer"></i>
+            </div>
+          </div>
         </div>
-        <div *ngFor="let item of conditionsItems.controls; let i = index"
-             [formGroupName]="i"
-             class="d-flex flex-row mb-3">
 
-          <div class="form-floating me-3 col">
-            <select class="form-select"
-                    id="floatingAttribute"
-                    formControlName="columnName"
-                    placeholder="columnName">
-              <option *ngFor="let option of attributes"
-                      [value]="option">{{ option }}</option>
-            </select>
-            <label for="floatingAttribute">Attributes</label>
+        <div formArrayName="conditions">
+          <div *ngIf="conditionsItems.length > 0" class="mb-3">
+            WHERE
           </div>
+          <div *ngFor="let item of conditionsItems.controls; let i = index"
+               [formGroupName]="i"
+               class="d-flex flex-row mb-3">
 
-          <div class="form-floating me-3 col">
-            <select class="form-select"
-                    id="floatingOperation"
-                    formControlName="operation"
-                    placeholder="Operation">
-              <option *ngFor="let option of operations"
-                      [value]="option.value">{{ option.label }}</option>
-            </select>
-            <label for="floatingOperation">Operation</label>
-          </div>
+            <div class="form-floating me-3 col">
+              <select class="form-select"
+                      id="floatingTable"
+                      formControlName="tableName"
+                      placeholder="table">
+                <option *ngFor="let option of tablesName"
+                        [value]="option">{{ option }}</option>
+              </select>
+              <label for="floatingTable">Tables</label>
+            </div>
+            <div class="mt-auto me-3">
+              .
+            </div>
+            <div class="form-floating me-3 col">
+              <select class="form-select"
+                      id="floatingAttribute"
+                      formControlName="columnName"
+                      placeholder="columnName">
+                <option *ngFor="let option of attributesCondition[i]"
+                        [value]="option">{{ option }}</option>
+              </select>
+              <label for="floatingAttribute">Attributes</label>
+            </div>
 
-          <div class="form-floating me-3 col">
-            <input class="form-control"
-                   id="value"
-                   formControlName="value"
-                   placeholder="value">
-            <label for="value">Value</label>
-          </div>
+            <div class="form-floating me-3 col">
+              <select class="form-select"
+                      id="floatingOperation"
+                      formControlName="operation"
+                      placeholder="Operation">
+                <option *ngFor="let option of operations"
+                        [value]="option.value">{{ option.label }}</option>
+              </select>
+              <label for="floatingOperation">Operation</label>
+            </div>
 
-          <div class="col m-auto">
-            <i (click)="deleteCondition(i)"
-               class="fa-solid fa-trash-can cursor-pointer"></i>
+            <div class="form-floating me-3 col">
+              <input class="form-control"
+                     id="value"
+                     formControlName="value"
+                     placeholder="value">
+              <label for="value">Value</label>
+            </div>
+
+            <div class="col m-auto">
+              <i (click)="deleteCondition(i)"
+                 class="fa-solid fa-trash-can cursor-pointer"></i>
+            </div>
           </div>
         </div>
 
         <div class="row">
           <div class="d-flex justify-content-end">
             <button (click)="addCondition()"
-                    class="btn btn-secondary mb-3">Add condition</button>
+                    class="btn btn-secondary mb-3 me-3">Add condition</button>
+            <button (click)="addJoin()"
+                    class="btn btn-secondary mb-3">Add join</button>
+
           </div>
         </div>
 

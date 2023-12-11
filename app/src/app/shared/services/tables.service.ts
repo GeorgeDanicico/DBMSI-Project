@@ -21,7 +21,7 @@ export class TablesService {
 
   fetchTableValuesBySelect(databaseName: string, tableName: string, query: Query): Observable<[]> {
     return this.http
-      .post<{ records: [] }>(`http://localhost:8080/api/databases/${databaseName}/tables/${tableName}/select`, { ...query })
+      .post<{ records: [] }>(`http://localhost:8080/api/databases/${databaseName}/tables/select/join`, { ...query })
       .pipe(map((resp) => resp.records));
   }
 
